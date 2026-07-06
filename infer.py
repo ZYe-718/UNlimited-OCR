@@ -37,7 +37,12 @@ MAX_RETRIES = 5
 NO_REPEAT_NGRAM_PROCESSOR_STR = None
 
 
-def get_ngram_processor_str():
+def get_ngram_processor_str() -> str:
+    """
+    Returns the string representation of the no-repeat n-gram processor.
+
+    This function initializes and returns a global variable that stores the string representation of the no-repeat n-gram processor, which is used to prevent repetitive n-grams in the generated text.
+    """
     global NO_REPEAT_NGRAM_PROCESSOR_STR
     if NO_REPEAT_NGRAM_PROCESSOR_STR is None:
         from sglang.srt.sampling.custom_logit_processor import (
