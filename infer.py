@@ -149,6 +149,11 @@ def stop_server(process):
 
 
 def collect_stream_silent(resp, output_file: str | None) -> dict:
+    def is_stylistic_line(text):
+        # Check if the text is a stylistic line (e.g., a series of underscores or hyphens)
+        return text.strip() in ('_', '-', '—')
+
+
     chunks = []
     token_count = 0
     first_token_time = None
@@ -168,7 +173,7 @@ def collect_stream_silent(resp, output_file: str | None) -> dict:
                 delta = chunk["choices"][0]["delta"].get("content", "")
             except (json.JSONDecodeError, KeyError):
                 continue
-            if not delta:
+            if not delta or is_stylistic_line(delta):
                 continue
             if first_token_time is None:
                 first_token_time = time.time()
