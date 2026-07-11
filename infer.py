@@ -10,6 +10,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -35,6 +36,16 @@ NGRAM_WINDOW = 128
 REQUEST_TIMEOUT = 1200
 MAX_RETRIES = 5
 NO_REPEAT_NGRAM_PROCESSOR_STR = None
+STYLISTIC_LINE_RE = re.compile(r"^[\s]*[_\-—―‐‑‒–]{4,}[\s]*$")
+
+
+def remove_stylistic_lines(text: str) -> str:
+    """Remove standalone decorative horizontal-rule lines from assembled text."""
+    return "".join(
+        line
+        for line in text.splitlines(keepends=True)
+        if not STYLISTIC_LINE_RE.match(line.rstrip("\r\n"))
+    )
 
 
 def get_ngram_processor_str():
@@ -149,45 +160,37 @@ def stop_server(process):
 
 
 def collect_stream_silent(resp, output_file: str | None) -> dict:
-    def is_stylistic_line(text):
-        # Check if the text is a stylistic line (e.g., a series of underscores or hyphens)
-        return text.strip() in ('_', '-', '—')
-
-
     chunks = []
     token_count = 0
     first_token_time = None
-    f = open(output_file, "w", encoding="utf-8") if output_file else None
-    try:
-        for raw_line in resp.iter_lines():
-            if not raw_line:
-                continue
-            line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
-            if not line.startswith("data:"):
-                continue
-            data = line[len("data:"):].strip()
-            if data == "[DONE]":
-                break
-            try:
-                chunk = json.loads(data)
-                delta = chunk["choices"][0]["delta"].get("content", "")
-            except (json.JSONDecodeError, KeyError):
-                continue
-            if not delta or is_stylistic_line(delta):
-                continue
-            if first_token_time is None:
-                first_token_time = time.time()
-            token_count += 1
-            chunks.append(delta)
-            if f:
-                f.write(delta)
-    finally:
-        if f:
-            f.close()
+    for raw_line in resp.iter_lines():
+        if not raw_line:
+            continue
+        line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+        if not line.startswith("data:"):
+            continue
+        data = line[len("data:"):].strip()
+        if data == "[DONE]":
+            break
+        try:
+            chunk = json.loads(data)
+            delta = chunk["choices"][0]["delta"].get("content", "")
+        except (json.JSONDecodeError, KeyError):
+            continue
+        if not delta:
+            continue
+        if first_token_time is None:
+            first_token_time = time.time()
+        token_count += 1
+        chunks.append(delta)
 
     end_time = time.time()
     decode_time = (end_time - first_token_time) if first_token_time and token_count > 1 else 0
-    return {"tokens": token_count, "decode_time": decode_time, "text": "".join(chunks)}
+    text = remove_stylistic_lines("".join(chunks))
+    if output_file:
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(text)
+    return {"tokens": token_count, "decode_time": decode_time, "text": text}
 
 
 def infer_one(image_path: str, output_file: str | None, args, idx: int) -> dict:
