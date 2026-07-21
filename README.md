@@ -4,7 +4,11 @@
 
 <hr>
 
-<h1 align="center">Unlimited OCR Works</h1>
+<div align="center">
+
+# Unlimited OCR Works
+
+</div>
 
 <div align="center">
   <a href="https://github.com/baidu/Unlimited-OCR">
@@ -24,7 +28,11 @@
   </a>
 </div>
 
-<h3 align="center">Welcome the Era of One-shot Long-horizon Parsing.</h3>
+<div align="center">
+
+## Welcome the Era of One-shot Long-horizon Parsing.
+
+</div>
 
 <p align="center">
     <img src="assets/Unlimited-OCR.png" width="1000" alt="Unlimited OCR overview" />
@@ -133,7 +141,7 @@ Please refer to the official vLLM recipe for deployment details:
 
 **Recipe:** [https://recipes.vllm.ai/baidu/Unlimited-OCR](https://recipes.vllm.ai/baidu/Unlimited-OCR)
 
-##### Docker Images
+#### Docker Images
 Use the following Docker images depending on your GPU platform:
 
 **Default (CUDA 13.0):**
