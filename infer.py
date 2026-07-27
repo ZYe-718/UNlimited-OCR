@@ -107,6 +107,8 @@ def start_server(args):
         str(MEM_FRACTION_STATIC),
         "--context-length",
         str(CONTEXT_LENGTH),
+        "--model-impl",
+        "transformers",
         "--enable-custom-logit-processor",
         "--disable-overlap-schedule",
         "--skip-server-warmup",
