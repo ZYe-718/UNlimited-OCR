@@ -7,6 +7,9 @@
 <h1 align="center">Unlimited OCR Works</h1>
 
 <div align="center">
+
+<a href="https://trendshift.io/repositories/62053?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-62053" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/62053/daily" alt="baidu%2FUnlimited-OCR | Trendshift" width="250" height="55"/></a>
+  
   <a href="https://github.com/baidu/Unlimited-OCR">
     <img alt="GitHub" src="https://img.shields.io/badge/GitHub-Code-181717?logo=github&logoColor=white" />
   </a>
@@ -295,6 +298,36 @@ Useful options:
 > **Preventing Text Repetition Loops:**
 > On certain dense or structured document pages, short text phrases may repeat endlessly. Pass `--repetition_penalty 1.1` in `infer.py` or set `repetition_penalty=1.1` in `model.generate()` to prevent repetition loops. You can also tune `no_repeat_ngram_size` (e.g. `15`-`35`) to detect shorter repeating units.
 
+For OmniDocBench evaluation, you need to perform the following post-processing.
+```python
+def remove_det(raw: str) -> str:
+    """
+    Strip <|det|>type [bbox]<|/det|> markers, group lines belonging to the
+    same block with \\n, and separate different blocks with \\n\\n.
+    """
+    blocks = []
+    cur = None
+    for line in raw.splitlines():
+        line = line.rstrip()
+        if not line:
+            continue
+        m = DET_RE.match(line)
+        if m:
+            category, content = m.group(1).strip(), m.group(2).strip()
+            if category == 'image':
+                continue
+            if cur is not None:
+                blocks.append(cur)
+            cur = [content] if content else []
+            continue
+        if cur is None:
+            cur = []
+        cur.append(line)
+    if cur is not None:
+        blocks.append(cur)
+    text = '\n\n'.join('\n'.join(b) for b in blocks).strip()
+    return text
+```
 
 ## Visualization
 
