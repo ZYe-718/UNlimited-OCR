@@ -27,6 +27,7 @@ htmlcov/
 
 # Local runtime outputs
 outputs/
+ocr_output/
 log/
 *.log
 
