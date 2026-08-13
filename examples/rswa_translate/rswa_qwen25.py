@@ -24,15 +24,13 @@ prefill 路径改用 `F.scaled_dot_product_attention`，避免原 eager 实现�
     # 或 patch_rswa(model, window=None)     # 全注意力对照臂
     model.generate(...)
 """
+
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-
 from transformers.models.qwen2.modeling_qwen2 import (
     Qwen2Attention,
     Qwen2RotaryEmbedding,
@@ -58,11 +56,19 @@ class SlidingWindowQwen2Attention(Qwen2Attention):
     # ---- cache 访问垫片（兼容 transformers 版本漂移）----
     @staticmethod
     def _kcache(cache, layer_idx):
-        return cache.key_cache[layer_idx] if hasattr(cache, "key_cache") else cache.layers[layer_idx].keys
+        return (
+            cache.key_cache[layer_idx]
+            if hasattr(cache, "key_cache")
+            else cache.layers[layer_idx].keys
+        )
 
     @staticmethod
     def _vcache(cache, layer_idx):
-        return cache.value_cache[layer_idx] if hasattr(cache, "value_cache") else cache.layers[layer_idx].values
+        return (
+            cache.value_cache[layer_idx]
+            if hasattr(cache, "value_cache")
+            else cache.layers[layer_idx].values
+        )
 
     def forward(
         self,
@@ -114,7 +120,11 @@ class SlidingWindowQwen2Attention(Qwen2Attention):
             k_e = repeat_kv(k, num_kv_groups)
             v_e = repeat_kv(v, num_kv_groups)
             # SDPA：修复长 prefill 的 eager OOM
-            attn_mask = attention_mask if (attention_mask is not None and attention_mask.ndim == 4) else None
+            attn_mask = (
+                attention_mask
+                if (attention_mask is not None and attention_mask.ndim == 4)
+                else None
+            )
             out = F.scaled_dot_product_attention(
                 q, k_e, v_e, attn_mask=attn_mask, dropout_p=0.0, is_causal=(attn_mask is None)
             )
@@ -145,7 +155,11 @@ class SlidingWindowQwen2Attention(Qwen2Attention):
                 k, v = pk.update(k, v, self.layer_idx)
             k_e = repeat_kv(k, num_kv_groups)
             v_e = repeat_kv(v, num_kv_groups)
-            attn_mask = attention_mask if (attention_mask is not None and attention_mask.ndim == 4) else None
+            attn_mask = (
+                attention_mask
+                if (attention_mask is not None and attention_mask.ndim == 4)
+                else None
+            )
             out = F.scaled_dot_product_attention(
                 q, k_e, v_e, attn_mask=attn_mask, dropout_p=0.0, is_causal=(attn_mask is None)
             )
@@ -185,7 +199,7 @@ class SlidingWindowQwen2Attention(Qwen2Attention):
         return out, None
 
 
-def patch_rswa(model, window: Optional[int] = 512):
+def patch_rswa(model, window: int | None = 512):
     """把 `model` 里所有 Qwen2Attention 替换为 SlidingWindowQwen2Attention，
     并通过 `model.config._ring_window` 路由窗口大小。
 
@@ -214,6 +228,7 @@ def patch_rswa(model, window: Optional[int] = 512):
 if __name__ == "__main__":
     # 冒烟测试：证明 R-SWA 能跑通 generate 且不崩溃。需 torch + 权重。
     import os
+
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     name = os.environ.get("RSWA_MODEL", "Qwen/Qwen2.5-0.5B")
