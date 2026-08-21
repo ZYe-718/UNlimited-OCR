@@ -29,7 +29,7 @@ import sys
 import tempfile
 
 import torch
-from text_utils import segment_text
+from text_utils import build_translate_prompt, segment_text
 from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer
 
 # ---------------------------------------------------------------------------
@@ -97,7 +97,7 @@ def load_translator(window=512, model_name=None):
 @torch.no_grad()
 def translate_segment(model, tokenizer, segment, tgt_lang="Chinese", max_new_tokens=256):
     dev = next(model.parameters()).device
-    prompt = f"Translate the following text to {tgt_lang}:\n{segment}\n\nTranslation:"
+    prompt = build_translate_prompt(segment, tgt_lang=tgt_lang)
     ids = tokenizer(prompt, return_tensors="pt").to(dev)
     out = model.generate(
         **ids, max_new_tokens=max_new_tokens, do_sample=False, pad_token_id=tokenizer.eos_token_id
