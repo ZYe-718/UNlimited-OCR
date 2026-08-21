@@ -48,3 +48,18 @@ def segment_text(text: str, max_chars: int = 512) -> list[str]:
                 if line.strip():
                     out.append(line)
     return [s for s in out if s.strip()]
+
+
+def build_translate_prompt(segment: str, tgt_lang: str = "Chinese") -> str:
+    """构建单段翻译 prompt（纯函数，无 torch 依赖，便于单测）。
+
+    参数
+    ----
+    segment: 待翻译的源文片段。
+    tgt_lang: 目标语言名（如 ``Chinese`` / ``Japanese``）。
+
+    返回
+    ----
+    可直接喂给翻译模型的 prompt 字符串。
+    """
+    return f"Translate the following text to {tgt_lang}:\n{segment}\n\nTranslation:"
