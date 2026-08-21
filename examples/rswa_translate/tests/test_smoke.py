@@ -16,9 +16,8 @@ HEAVY = pytest.mark.skipif(
 
 @HEAVY
 def test_patch_rswa_writes_window_to_config():
-    from transformers import AutoModelForCausalLM
-
     from rswa_qwen25 import patch_rswa
+    from transformers import AutoModelForCausalLM
 
     model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", attn_implementation="eager")
     patch_rswa(model, window=64)
@@ -29,9 +28,8 @@ def test_patch_rswa_writes_window_to_config():
 
 @HEAVY
 def test_patch_rswa_full_attention_arm():
-    from transformers import AutoModelForCausalLM
-
     from rswa_qwen25 import patch_rswa
+    from transformers import AutoModelForCausalLM
 
     model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", attn_implementation="eager")
     patch_rswa(model, window=None)
