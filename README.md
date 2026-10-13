@@ -130,6 +130,22 @@ model.infer_multi(
 )
 ```
 
+#### Run and merge a PDF page by page
+
+Run OCR:
+
+```shell
+python run_ocr.py your_doc.pdf
+```
+
+Merge the page results:
+
+```shell
+python merge_results.py ./ocr_output
+```
+
+The merged Markdown file is saved to `./ocr_output/merged.md`.
+
 ### vLLM
 
 Please refer to the official vLLM recipe for deployment details:
