@@ -12,7 +12,7 @@ After the PR:
 
 * Make sure the [GitHub Actions](https://github.com/baidu/Unlimited-OCR/actions) passed.
 
-# Chinese version
+## Chinese Version
 
 如果你遇到问题或需要新功能，欢迎[创建issue](https://github.com/baidu/Unlimited-OCR/issues/new/choose)。
 
