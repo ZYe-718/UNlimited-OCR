@@ -1,3 +1,5 @@
+**English** | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
+
 <p align="center">
   <img src="assets/baidu.png" width="40%" alt="Baidu Inc." />
 </p>
