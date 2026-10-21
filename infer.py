@@ -36,6 +36,11 @@ REQUEST_TIMEOUT = 1200
 MAX_RETRIES = 5
 NO_REPEAT_NGRAM_PROCESSOR_STR = None
 
+# infer.py only talks to the SGLang server running on this machine. Do not inherit
+# HTTP(S)_PROXY or ALL_PROXY settings for those loopback requests.
+LOOPBACK_SESSION = requests.Session()
+LOOPBACK_SESSION.trust_env = False
+
 
 def get_ngram_processor_str():
     global NO_REPEAT_NGRAM_PROCESSOR_STR
@@ -76,7 +81,7 @@ def build_content(image_path: str) -> list[dict]:
 
 def server_ready(server_url: str) -> bool:
     try:
-        resp = requests.get(f"{server_url}/health", timeout=5)
+        resp = LOOPBACK_SESSION.get(f"{server_url}/health", timeout=5)
         return resp.status_code == 200
     except requests.RequestException:
         return False
@@ -204,7 +209,7 @@ def infer_one(image_path: str, output_file: str | None, args, idx: int) -> dict:
     name = os.path.basename(image_path)
     for attempt in range(MAX_RETRIES):
         try:
-            resp = requests.post(
+            resp = LOOPBACK_SESSION.post(
                 f"{SERVER_URL}/v1/chat/completions",
                 headers={"Content-Type": "application/json"},
                 data=json.dumps(payload),
